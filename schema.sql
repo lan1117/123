@@ -50,7 +50,7 @@ CREATE TABLE Albums_own (
 CREATE TABLE Pictures_Album
 (
   picture_id int4 AUTO_INCREMENT,
-  imgdata longblob,
+  imgdata longblob ,
   caption varchar(255),
   album_id int NOT NULL,
   PRIMARY KEY (picture_id),

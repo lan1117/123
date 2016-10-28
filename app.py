@@ -14,6 +14,9 @@ from flaskext.mysql import MySQL
 import flask.ext.login as flask_login
 import datetime
 
+#from selenium.webdriver.support.select import Select
+
+
 #for image uploading
 from werkzeug import secure_filename
 import os, base64
@@ -147,15 +150,45 @@ def register_user():
         print "couldn't find all tokens"
         return flask.redirect(flask.url_for('register'))
 
-def getUsersPhotos(uid):
+#def getUsersPhotos(uid):
+#    cursor = conn.cursor()
+#    cursor.execute("SELECT imgdata, picture_id, caption FROM Pictures WHERE user_id = '{0}'".format(uid))
+#    return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
+def getDoBfromUser(user_id):
     cursor = conn.cursor()
-    cursor.execute("SELECT imgdata, picture_id, caption FROM Pictures WHERE user_id = '{0}'".format(uid))
-    return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
+    cursor.execute("SELECT dob FROM Users WHERE user_id = '{0}'".format(user_id))
+    return cursor.fetchone()[0]
+def getGenderfromUser(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT gender FROM Users WHERE user_id = '{0}'".format(user_id))
+    return cursor.fetchone()[0]
+def gethometownfromUser(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT hometown FROM Users WHERE user_id = '{0}'".format(user_id))
+    return cursor.fetchone()[0]
+def getemailfromUser(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM Users WHERE user_id = '{0}'".format(user_id))
+    return cursor.fetchone()[0]
+
+def getAlbumPhotos(album_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT imgdata, picture_id, caption FROM Pictures_Album WHERE album_id = '{0}'".format(album_id))
+    return cursor.fetchall()
 
 def getUsersAlbum(user_id):
     cursor = conn.cursor()
-    cursor.execute("SELECT alname, docreation FROM Albums_own WHERE user_id = '{0}'".format(user_id))
-    return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
+    cursor.execute("SELECT alname FROM Albums_own WHERE user_id = '{0}'".format(user_id))
+    alname = []
+    allname = cursor.fetchall()
+    for name in allname:
+        alname.append(name[0])
+    return alname
+
+def getAlbumIdFromAlname(alname):
+    cursor = conn.cursor()
+    cursor.execute("SELECT album_id FROM Albums_own WHERE alname = '{0}'".format(alname))
+    return cursor.fetchone()[0]
 
 def getUserIdFromEmail(email):
     cursor = conn.cursor()
@@ -175,13 +208,16 @@ def isEmailUnique(email):
 @app.route('/profile')
 @flask_login.login_required
 def protected():
-    return render_template('hello.html', name=flask_login.current_user.id, message="Here's your profile")
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    return render_template('profile.html', name=flask_login.current_user.id, dob=getDoBfromUser(user_id), gender=getGenderfromUser(user_id), email=getemailfromUser(user_id), hometown=gethometownfromUser(user_id), message="Here's your profile")
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
 
 @app.route('/createalbum', methods=['GET', 'POST'])
 @flask_login.login_required
@@ -202,19 +238,24 @@ def createalbum():
 @app.route('/upload', methods=['GET', 'POST'])
 @flask_login.login_required
 def upload_file():
-	if request.method == 'POST':
-		uid = getUserIdFromEmail(flask_login.current_user.id)
-		imgfile = request.file['photo']
-		caption = request.form.get('caption')
-		print caption
-		photo_data = base64.standard_b64encode(imgfile.read())
-		cursor = conn.cursor()
-		cursor.execute("INSERT INTO Pictures_Album (imgdata, user_id, caption) VALUES ('{0}', '{1}', '{2}' )".format(photo_data,uid, caption))
-		conn.commit()
-		return render_template('album.html', name=flask_login.current_user.id, albums = getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)), message='Photo uploaded!', photos=getUsersPhotos(uid) )
+    if request.method == 'POST':
+		#uid = getUserIdFromEmail(flask_login.current_user.id)
+
+        alname = request.form.get('album_name')
+        album_id = getAlbumIdFromAlname(alname)
+        print album_id
+        imgfile = request.files['photo']
+        photo_data = base64.standard_b64encode(imgfile.read())
+        caption = request.form.get('caption')
+		#print caption
+        #imgdata = base64.standard_b64encode(imgfile.read())
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO Pictures_Album (imgdata, caption, album_id) VALUES ('{0}', '{1}', '{2}')".format(photo_data, caption, album_id))
+        conn.commit()
+        return render_template('album.html', name=flask_login.current_user.id, albums = alname, message='Photo uploaded!', photos=getAlbumPhotos(album_id) )
 	#The method is GET so we return a  HTML form to upload the a photo.
-	else:
-		return render_template('upload.html', name=flask_login.current_user.id, albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
+    else:
+        return render_template('upload.html', name=flask_login.current_user.id, albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
 #end photo uploading code
 
 

@@ -7,17 +7,17 @@
         <div class="title">
             <h1>Upload a photo to Photoshare</h1>
         </div>
-            <form method="post" action="{{ url_for('upload_file') }}">
-              <select name="alname" form="alname">
+            <form method="post" enctype="multipart/form-data" action="/upload">
 
+              <select name="album_name">
                 <option value="selected">Select</option>
                 {% if albums %}
                 {% for alname in albums %}
-                <option value="1">{{ alname }}</option>
+                  <option value= {{ alname }} > {{ alname }} </option>
                 {% endfor %}
                 {% endif %}
-
               </select>
+
               <p><b>Note:</b> Select the album you want to add this photo in!</p>
                 <label for="photo">Select photo:</label>
                 <input type="file" name="photo" required='true' /><br />
