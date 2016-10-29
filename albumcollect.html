@@ -1,0 +1,24 @@
+<!-- author ben lawson (balawson@bu.edu) -->
+<!doctype html>
+<head>
+    <title>Here are your albums!</title>
+</head>
+    <body>
+        <div class="title">
+            <h1>Select the album you wanna see</h1>
+        </div>
+            <form method="post" enctype="multipart/form-data" action="/albumcollect">
+
+              <select name="album_name">
+                <option value="selected">Select</option>
+                {% if albums %}
+                {% for alname in albums %}
+                  <option value= {{ alname }} > {{ alname }} </option>
+                {% endfor %}
+                {% endif %}
+              </select>
+                <input type="submit" value="Check" />
+            </form>
+            <br>
+
+    </body>

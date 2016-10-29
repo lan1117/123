@@ -1,0 +1,13 @@
+<!doctype html>
+
+<form action="" method="POST">
+  <p>
+    <label for="id_users">Add friends!<br><br></label>
+    {% if useremail %}
+    {% for email in useremail %}
+    <input type="checkbox" name="userinfo" value = {{useremail}}> {{email}}<br>
+    {% endfor %}
+    {% endif %}
+  </p>
+  <input type="submit" value="Submit">
+</form>

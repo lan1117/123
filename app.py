@@ -13,6 +13,7 @@ from flask import Flask, Response, request, render_template, redirect, url_for
 from flaskext.mysql import MySQL
 import flask.ext.login as flask_login
 import datetime
+import re
 
 #from selenium.webdriver.support.select import Select
 
@@ -120,6 +121,7 @@ def unauthorized_handler():
 #you can specify specific methods (GET/POST) in function header instead of inside the functions as seen earlier
 @app.route("/register", methods=['GET'])
 def register():
+
     return render_template('register.html', supress='True')
 
 
@@ -145,6 +147,8 @@ def register_user():
         user = User()
         user.id = email
         flask_login.login_user(user)
+        user_id = getUserIdFromEmail(flask_login.current_user.id)
+        cursor.execute("INSERT INTO friends (friend_one, friend_two, status) VALUES ('{0}', '{1}', '{2}')".format(user_id, user_id, 2))
         return render_template('hello.html', name=email, message='Account Created!')
     else:
         print "couldn't find all tokens"
@@ -205,11 +209,46 @@ def isEmailUnique(email):
         return True
 #end login code
 
+def AllUsersemail():
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM Users")
+    al_email = []
+    data = cursor.fetchall()
+    for email in data:
+        al_email.append(email[0])
+    return al_email
+def AllUsershometown():
+    cursor = conn.cursor()
+    cursor.execute("SELECT hometown FROM Users")
+    al_hometown = []
+    data = cursor.fetchall()
+    for hometown in data:
+        al_hometown.append(hometown[0])
+    return al_hometown
+def AllUsersgender():
+    cursor = conn.cursor()
+    cursor.execute("SELECT gender FROM Users")
+    al_gender = []
+    data = cursor.fetchall()
+    for gender in data:
+        al_gender.append(gender[0])
+    return al_gender
+def getFriendFromUserID(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT friend_two FROM friends WHERE friend_one='{0}'".format(user_id))
+    friends = []
+    data = cursor.fetchall()
+    for friend in data:
+        friends.append(getemailfromUser(friend[0]))
+    return friends
+
+
 @app.route('/profile')
 @flask_login.login_required
 def protected():
     user_id = getUserIdFromEmail(flask_login.current_user.id)
     return render_template('profile.html', name=flask_login.current_user.id, dob=getDoBfromUser(user_id), gender=getGenderfromUser(user_id), email=getemailfromUser(user_id), hometown=gethometownfromUser(user_id), message="Here's your profile")
+
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
@@ -239,16 +278,12 @@ def createalbum():
 @flask_login.login_required
 def upload_file():
     if request.method == 'POST':
-		#uid = getUserIdFromEmail(flask_login.current_user.id)
-
         alname = request.form.get('album_name')
         album_id = getAlbumIdFromAlname(alname)
         print album_id
         imgfile = request.files['photo']
         photo_data = base64.standard_b64encode(imgfile.read())
         caption = request.form.get('caption')
-		#print caption
-        #imgdata = base64.standard_b64encode(imgfile.read())
         cursor = conn.cursor()
         cursor.execute("INSERT INTO Pictures_Album (imgdata, caption, album_id) VALUES ('{0}', '{1}', '{2}')".format(photo_data, caption, album_id))
         conn.commit()
@@ -257,7 +292,40 @@ def upload_file():
     else:
         return render_template('upload.html', name=flask_login.current_user.id, albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
 #end photo uploading code
+@app.route('/albumcollect', methods=['GET', 'POST'])
+@flask_login.login_required
+def albumcollect():
+    if request.method =='POST':
+        alname = request.form.get('album_name')
+        album_id = getAlbumIdFromAlname(alname)
+        #conn.commit()
+        return render_template('album.html', name=flask_login.current_user.id, albums = alname, photos=getAlbumPhotos(album_id))
+    else:
+        return render_template('albumcollect.html', albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
 
+
+@app.route('/addfriend', methods=['GET', 'POST'])
+@flask_login.login_required
+def addfriend():
+    if request.method == 'POST':
+        friendemail = request.form.get('userinfo')
+        friendemail2 = friendemail.replace("[u", "")
+        friendemail3 = friendemail2.replace(",", "")
+        friendemail4 = friendemail3.replace("'","")
+        print("selected:" + friendemail4)
+
+        friend_id = getUserIdFromEmail(friendemail4)
+        user_id = getUserIdFromEmail(flask_login.current_user.id)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO friends (friend_one, friend_two, status) VALUES ('{0}', '{1}', '{2}')".format(user_id, friend_id, 1))
+        conn.commit()
+        return render_template('friend.html', message='friends added and here are your friends!', friend=getFriendFromUserID(user_id))
+    else:
+        return render_template('addfriend.html', useremail=AllUsersemail())
+@app.route('/friend')
+def friend():
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    return render_template('friend.html', friends=getFriendFromUserID(user_id))
 
 #default page
 @app.route("/", methods=['GET'])

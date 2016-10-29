@@ -95,10 +95,11 @@ CREATE TABLE users_leave_comment(
 );
 
 CREATE TABLE friends(
-  user_id int4  NOT NULL
-      REFERENCES Users(user_id),
-  friend int4 NOT NULL
-      REFERENCES Users(user_id),
-  PRIMARY KEY (user_id, friend)
+  friend_one int4 ,
+  friend_two int4 ,
+  status ENUM('0', '1', '2') DEFAULT '0',
+  PRIMARY KEY (friend_one, friend_two),
+  FOREIGN KEY (friend_one) REFERENCES Users(user_id),
+  FOREIGN KEY (friend_two) REFERENCES Users(user_id)
 );
 INSERT INTO Users (fname, lname, email, dob, hometown, gender, password) VALUES ('ZK','Liu','zk@bu.edu', '730','qd','M','123456');
