@@ -1,13 +1,25 @@
 <!doctype html>
+{% if message %}
+<h4>{{message}}!</h4>
+{% endif %}
 
-<form action="" method="POST">
+<form action="/addfriend" method="POST">
   <p>
     <label for="id_users">Add friends!<br><br></label>
+    <h4>Here are the users that we have:<br></h4>
     {% if useremail %}
     {% for email in useremail %}
-    <input type="checkbox" name="userinfo" value = {{useremail}}> {{email}}<br>
+    <label for="email">{{email}}<br><br></label>
     {% endfor %}
     {% endif %}
+    <br>
+    <br>
+    <lebel for="friendemail">Enter the email you want to add as a friend:</label>
+    <input type="friendemail" name="friendemail" /><br />
   </p>
+
   <input type="submit" value="Submit">
 </form>
+
+<li><a href='/friend'>View your friends</a></li>
+<li><a href='/'>Home</a></li>

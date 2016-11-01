@@ -59,8 +59,9 @@ CREATE TABLE Pictures_Album
 );
 
 CREATE TABLE Tag(
+  tag_id int4 AUTO_INCREMENT,
   tag varchar(255),
-  PRIMARY KEY(tag)
+  PRIMARY KEY(tag_id)
 );
 
 CREATE TABLE Comments_photo(
@@ -75,13 +76,17 @@ CREATE TABLE Comments_photo(
 );
 
 CREATE TABLE Picture_tags(
+  user_id int4,
   picture_id int4 AUTO_INCREMENT,
-  tag varchar(255),
-  PRIMARY KEY (picture_id, tag),
+  tag_id int4,
+  imgdata longblob ,
+  PRIMARY KEY (picture_id, tag_id),
   FOREIGN KEY (picture_id)
       REFERENCES Pictures_Album(picture_id),
-  FOREIGN KEY (tag)
-      REFERENCES Tag(tag)
+  FOREIGN KEY (tag_id)
+      REFERENCES Tag(tag_id),
+  FOREIGN KEY (user_id)
+      REFERENCES Users(user_id)
 );
 
 CREATE TABLE users_leave_comment(
@@ -102,4 +107,11 @@ CREATE TABLE friends(
   FOREIGN KEY (friend_one) REFERENCES Users(user_id),
   FOREIGN KEY (friend_two) REFERENCES Users(user_id)
 );
-INSERT INTO Users (fname, lname, email, dob, hometown, gender, password) VALUES ('ZK','Liu','zk@bu.edu', '730','qd','M','123456');
+
+INSERT INTO Tag (tag) VALUES ('human');
+INSERT INTO Tag (tag) VALUES ('science');
+INSERT INTO Tag (tag) VALUES ('sightseeing');
+INSERT INTO Tag (tag) VALUES ('animal');
+INSERT INTO Tag (tag) VALUES ('universe');
+INSERT INTO Tag (tag) VALUES ('plant');
+INSERT INTO Tag (tag) VALUES ('cartoon');

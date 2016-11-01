@@ -3,9 +3,9 @@
   <h4>{{message}}!</h4>
 {% endif %}
 
-{% if albums %}
+{% if tagalbums %}
 {% if photos %}
-<h2>Here is your photos in {{ albums }}</h2>
+<h2>Here is all the users' photos in {{ tagalbums }}</h2>
   <ul>
     {% for photo in photos %}
       <li><img src='data:image/png;base64, {{photo[0]}}'/></li>
@@ -15,5 +15,6 @@
 {% endif %}
 
 <ul>
+  <li><a href='/poptag'>Wanna see the most popular tag?</a></li>
   <li><a href='/'>Home</a></li>
 </ul>

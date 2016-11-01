@@ -1,0 +1,26 @@
+<!-- author ben lawson (balawson@bu.edu) -->
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+
+    <body>
+            <form method="post" enctype="multipart/form-data" action="/poptag">
+              {% if tag %}
+              {% if photos %}
+              <h2>The most popular tag is {{ tag }}, and here are the photos being tagged by {{tag}}</h2>
+                <ul>
+                  {% for photo in photos %}
+                    <li><img src='data:image/png;base64, {{photos[0]}}' /></li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              {% endif %}
+            </form>
+            <br>
+
+    </body>
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>

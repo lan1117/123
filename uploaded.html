@@ -1,0 +1,25 @@
+<!-- author ben lawson (balawson@bu.edu) -->
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+
+    <body>
+            <form method="post" enctype="multipart/form-data" action="/gettag">
+              {% if albums %}
+              {% if photos %}
+              <h2>Here is your uploaded photo in {{ albums }}!</h2>
+                <ul>
+                    <li><img src='data:image/png;base64, {{photos[-1][0]}}' /></li>
+
+                </ul>
+              {% endif %}
+              {% endif %}
+            </form>
+            <br>
+
+    </body>
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>

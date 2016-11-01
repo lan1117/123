@@ -1,0 +1,19 @@
+<!-- author ben lawson (balawson@bu.edu) -->
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+
+    <body>
+            <form method="post" enctype="multipart/form-data" action="/popuser">
+              {% if useremail %}
+              <h2>The most popular User is {{ useremail }}!</h2>
+              {% endif %}
+            </form>
+            <br>
+
+    </body>
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>
