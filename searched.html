@@ -1,0 +1,31 @@
+<!-- author ben lawson (balawson@bu.edu) -->
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+    <body>
+              {% if photos1 %}
+              {% if tag %}
+              <h3>Here are the photos being tagged by {{tag[0]}} and {{tag[1]}}</h3>
+              {% endif %}
+                <ul>
+              {% for photo in photos1 %}
+
+                    <img src='data:image/png;base64, {{photo[0]}}' />
+              {% endfor %}
+                </ul>
+              {% else %}
+              <h4>Sorry, We don't have photos being tagged as {{tag}}</h4>
+              {% endif %}
+              {% if photos2 %}
+              {% for photo in photos2 %}
+              <img src='data:image/png;base64, {{photo[0]}}' />
+              {% endfor %}
+              {% endif %}
+
+    </body>
+
+<ul>
+  <li><a href='/search'>Search another tag</a></li>
+  <li><a href='/'>Home</a></li>
+</ul>

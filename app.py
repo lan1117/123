@@ -305,6 +305,17 @@ def poptagpic():
     cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
     tag = cursor.fetchone()[0]
     return render_template('tag.html', tagalbums = tag, photos = getTagPictures(tag_id))
+@app.route('/youmayalsolike')
+@flask_login.login_required
+def youmayalsolike():
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    cursor = conn.cursor()
+    cursor.execute("SELECT tag_id FROM Picture_tags WHERE user_id = '{0}' GROUP BY tag_id ORDER BY COUNT(*) DESC LIMIT 1".format(user_id))
+    tag_id = cursor.fetchone()[0]
+    cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
+    tag = cursor.fetchone()[0]
+    photo = getTagPictures(tag_id)
+    return render_template('youmayalsolike.html', photos = photo, tagalbums = tag)
 
 def getAllphotos():
     cursor = conn.cursor()
@@ -402,6 +413,26 @@ def upload_file():
         return render_template('uploaded.html', name=flask_login.current_user.id, albums = alname, message='Photo uploaded!', photos=getAlbumPhotos(album_id) )
     else:
         return render_template('upload.html', name=flask_login.current_user.id, albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)),  tags=getAlltags())
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method =='POST':
+        search = request.form.get('search')
+        #print(search)
+        search2 = search.split("#")
+        #print(search2[1])
+        cursor = conn.cursor()
+        tag_ids = []
+        for i in range(len(search2)):
+            #cursor.execute("SELECT tag_id FROM Tag WHERE tag = '{0}'".format(search2[i]))
+            #tag_id = cursor.fetchone()[0]
+            tag_ids.append(getTagIdFromTag(search2[i]))
+        print(tag_ids)
+        photo1 = getTagPictures(tag_ids[0])
+        photo2 = getTagPictures(tag_ids[1])
+        return render_template('searched.html', photos1 = photo1, photos2 = photo2, tag = search2)
+    else:
+        return render_template('search.html')
 #end photo uploading code
 @app.route('/albumcollect', methods=['GET', 'POST'])
 @flask_login.login_required

@@ -1,0 +1,18 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+{% if tagalbums %}
+<h4>According to our record, you may also like the photos in: {{tagalbums}}</h4>
+{% endif %}
+{% if photos %}
+  <ul>
+    {% for photo in photos %}
+      <li><img src='data:image/png;base64, {{photo[0]}}'/></li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>
