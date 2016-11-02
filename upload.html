@@ -16,17 +16,14 @@
                   <option value= {{ alname }} > {{ alname }} </option>
                 {% endfor %}
                 {% endif %}
-              </select>
-
-
-
+              </select><br><br>
 
                 <label for="photo">Select photo:</label>
                 <input type="file" name="photo" required='true' /><br />
                 <label for="caption">Please caption:</label>
                 <input type="text" name="caption" required='true' /><br />
 
-                <p><b>Note:</b> Select the tag you want to add to this photo</p>
+                <p><b>Optional:</b> Select the tag you want to add to this photo</p>
                 <select name="tag_name">
                   {% if tags %}
                   {% for tag in tags %}
@@ -34,7 +31,7 @@
                   {% endfor %}
                   {% endif %}
                 </select>
-                
+
 
                 <input type="submit" value="upload" />
             </form>

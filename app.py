@@ -186,8 +186,8 @@ def getAlbumPhotos(album_id):
     return cursor.fetchall()
 def getPicturedatafromPictureId(picture_id):
     cursor = conn.cursor()
-    cursor.execute("SELECT imgdata, caption FROM Pictures_Album WHERE picture_id = '{0}'".format(picture_id))
-    return cursor.fetchall()
+    cursor.execute("SELECT imgdata FROM Pictures_Album WHERE picture_id = '{0}'".format(picture_id))
+    return cursor.fetchone()[0]
 def getTagPictures(tag_id):
     cursor = conn.cursor()
     cursor.execute("SELECT imgdata, picture_id FROM Picture_tags WHERE tag_id = '{0}'".format(tag_id))
@@ -295,8 +295,28 @@ def getFriendFromUserID(user_id):
 def protected():
     user_id = getUserIdFromEmail(flask_login.current_user.id)
     return render_template('profile.html', name=flask_login.current_user.id, dob=getDoBfromUser(user_id), gender=getGenderfromUser(user_id), email=getemailfromUser(user_id), hometown=gethometownfromUser(user_id), message='Here is your profile')
+@app.route('/poptagpic')
+@flask_login.login_required
+def poptagpic():
+    cursor = conn.cursor()
+    cursor.execute("SELECT tag_id FROM Picture_tags GROUP BY tag_id ORDER BY COUNT(*) DESC LIMIT 1")
+    tag_id = cursor.fetchone()[0]
+    conn.commit()
+    cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
+    tag = cursor.fetchone()[0]
+    return render_template('tag.html', tagalbums = tag, photos = getTagPictures(tag_id))
 
-
+def getAllphotos():
+    cursor = conn.cursor()
+    cursor.execute("SELECT picture_id, imgdata, num_likes FROM Pictures_Album")
+    pictures = cursor.fetchall()
+    conn.commit()
+    return pictures
+@app.route('/allpicture')
+@flask_login.login_required
+def allpicture():
+    pictures = getAllphotos()
+    return render_template('allpicture.html', photos = pictures, message='Here are all the photos uploaded through our website!')
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
@@ -408,6 +428,50 @@ def friend():
     user_id = getUserIdFromEmail(flask_login.current_user.id)
     return render_template('friend.html', friends=getFriendFromUserID(user_id), message='Here are your friends!')
 
+def add_like(picture_id):
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Pictures_Album SET num_likes = num_likes + 1 WHERE picture_id = '{0}'".format(picture_id))
+    conn.commit()
+@app.route('/like/<picture_id>', methods=['POST', 'GET'])
+def like(picture_id):
+    add_like(picture_id)
+    return render_template('allpicture.html', message = 'You liked a photo', photos=getAllphotos())
+def add_comment(picture_id):
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Comments_photo SET num_comments = num_comments + 1 WHERE picture_id = '{0}'".format(picture_id))
+    conn.commit()
+@app.route('/picture_comment/<picture_id>', methods=['POST', 'GET'])
+@flask_login.login_required
+def picture_comment(picture_id):
+    add_comment(picture_id)
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    if request.method == 'POST':
+        cotext = request.form.get('commenttt')
+        dohave = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
+        cursor = conn.cursor()
+        cursor.execute("SELECT user_id FROM Picture_tags WHERE picture_id = '{0}'".format(picture_id))
+        owner_id = cursor.fetchone()[0]
+        if owner_id != user_id:
+            cursor.execute("INSERT INTO Comments_photo (cotext, dohave, user_id, picture_id) VALUES ('{0}', '{1}', '{2}', '{3}')".format(cotext, dohave, user_id, picture_id))
+            return render_template('allpicture.html', message = 'Thank you for your comment!', photos = getAllphotos())
+        else:
+            return render_template('allpicture.html', message = 'You can not comment your own photo!', photos = getAllphotos())
+    else:
+        return render_template('picture_comment.html', pid = picture_id)
+
+@app.route('/comment_collect/<picture_id>', methods = ['POST', 'GET'])
+@flask_login.login_required
+def comment_collect(picture_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT cotext FROM Comments_photo WHERE picture_id = '{0}'".format(picture_id))
+    comments = cursor.fetchall()
+    comments2 = []
+    for comment in comments:
+        comments2.append(comment[0])
+    conn.commit()
+
+    return render_template('comment_collect.html', message = 'Here are the comments of this photo', photo = getPicturedatafromPictureId(picture_id), comments = comments2)
+
 @app.route('/popuser', methods = ['GET', 'POST'])
 def popuser():
     if request.method == 'POST':
@@ -433,7 +497,7 @@ def poptag():
         conn.commit()
         cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
         tag = cursor.fetchone()[0]
-        return render_template('poptag.html', tag = tag, photos = getTagPictures(tag_id))
+        return render_template('tag.html', tagalbums = tag, photos = getTagPictures(tag_id))
     else:
         cursor = conn.cursor()
         cursor.execute("SELECT tag_id FROM Picture_tags GROUP BY tag_id ORDER BY COUNT(*) DESC LIMIT 1")
@@ -442,7 +506,7 @@ def poptag():
         conn.commit()
         cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
         tag = cursor.fetchone()[0]
-        return render_template('poptag.html', tag = tag, photos = getTagPictures(tag_id))
+        return render_template('poptag.html', tagalbums = tag, photos = getTagPictures(tag_id))
 #default page
 @app.route("/", methods=['GET'])
 def hello():

@@ -115,3 +115,5 @@ INSERT INTO Tag (tag) VALUES ('animal');
 INSERT INTO Tag (tag) VALUES ('universe');
 INSERT INTO Tag (tag) VALUES ('plant');
 INSERT INTO Tag (tag) VALUES ('cartoon');
+alter table Pictures_Album add column num_likes integer not null default 0;
+alter table Comments_photo add column num_comments integer not null default 0;

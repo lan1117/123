@@ -1,0 +1,14 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+    <body>
+            <form method="post" enctype="multipart/form-data" action="/picture_comment/{{pid}}">
+                <label for="comment">Leave your message here:</label>
+                <input type="text" name="commenttt" required='true' /><br />
+                <input type="submit" value="Send" />
+            </form>
+            <br>
+
+    </body>

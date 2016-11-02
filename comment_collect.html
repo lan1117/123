@@ -1,0 +1,21 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+{% if photo %}
+  <img src='data:image/png;base64, {{photo}}' />
+{% endif %}
+
+{% if comments %}
+  <ul>
+    {% for comment in comments %}
+      <li>{{comment}}<br></li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<br><br><br>
+<ul>
+  <a href='/'>Home</a>
+</ul>
