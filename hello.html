@@ -20,20 +20,31 @@
 {% if message is none %}
   <p>You should <a href='/login'>login!</a></p>
 {% else %}
-  <p> Wanna <a href='/createalbum'>Create an album?</a></p>
+  <p> Ready to start your photo trip?</p>
 {% endif %}
 
 <ul>
 <li><a href='/profile'>View your profile</a></li>
+
+<h4>Manage your photos:</h4>
+<li><a href='/createalbum'>Create an Album</a></li>
+<li><a href='/upload'>Upload a photo</a></li>
+
+<h4>View your own work:</h4>
 <li><a href='/albumcollect'>View your albums</a></li>
-<li><a href='/upload'>Upload a photo</a> </li>
 <li><a href='/usertagcollect'>View your photos by tags</a></li>
-<li><a href='/tagcollect'>View all the photos by tags</a></li>
-<li><a href='/allpicture'>View all picutres from our users</a></li>
-<li><a href='/addfriend'>Add a friend</a></li>
-<li><a href='/friend'>View your friends</a></li>
-<li><a href='/popuser'>Check who is the most popular User!</a></li>
+
+<h4>File management:</h4>
 <li><a href='/alluserpicture'>Delect your photo</a></li>
 <li><a href='/deletealbum'>Delete your album</a></li>
+
+<h4>Friends management:</h4>
+<li><a href='/addfriend'>Add a friend</a></li>
+<li><a href='/friend'>View your friends</a></li>
+
+<h4>See other's work:</h4>
+<li><a href='/allpicture'>View all picutres from our users</a></li>
+<li><a href='/tagcollect'>View all the photos by tags</a></li>
+<li><a href='/popuser'>Check who is the most popular User!</a></li><br><br>
 <li><a href='/logout'>Logout</a></li>
 </ul>
