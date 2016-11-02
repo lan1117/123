@@ -1,6 +1,6 @@
 <!doctype html>
 {% if message %}
-  <h4>{{message}}!</h4>
+  <h3>{{message}}</h3>
 {% endif %}
 
 {% if friends %}
@@ -9,6 +9,8 @@
       <h2>{{friend}}<br></h2>
     {% endfor %}
   </ul>
+{% else %}
+<h4>You have not add any friends, add now!</h4>
 {% endif %}
 
 <ul>

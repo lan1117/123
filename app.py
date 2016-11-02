@@ -313,12 +313,22 @@ def getAllphotos():
     conn.commit()
     return pictures
 @app.route('/allpicture')
-@flask_login.login_required
+#@flask_login.login_required
 def allpicture():
     pictures = getAllphotos()
     return render_template('allpicture.html', photos = pictures, message='Here are all the photos uploaded through our website!')
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
+@app.route('/alluserpicture')
+@flask_login.login_required
+def alluserpicture():
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    cursor = conn.cursor()
+    cursor.execute("SELECT picture_id, imgdata FROM Pictures_Album WHERE user_id = '{0}'".format(user_id))
+    photo = cursor.fetchall()
+    return render_template('deletepicture.html', photos = photo, message = 'Delect the photos from your photo collection.')
+
+
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -375,6 +385,7 @@ def usertagcollect():
 def upload_file():
     if request.method == 'POST':
         user_id = getUserIdFromEmail(flask_login.current_user.id)
+        add_score(user_id)
         alname = request.form.get('album_name')
         album_id = getAlbumIdFromAlname(alname)
         imgfile = request.files['photo']
@@ -384,7 +395,7 @@ def upload_file():
         print("tagread in upload:" + tagread)
         tag_id = getTagIdFromTag(tagread)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Pictures_Album (imgdata, caption, album_id) VALUES ('{0}', '{1}', '{2}')".format(photo_data, caption, album_id))
+        cursor.execute("INSERT INTO Pictures_Album (user_id, imgdata, caption, album_id) VALUES ('{0}', '{1}', '{2}', '{3}')".format(user_id, photo_data, caption, album_id))
         picture_id = getPictureIdFromimgdata(photo_data)
         cursor.execute("INSERT INTO Picture_tags (imgdata, user_id, picture_id, tag_id) VALUES ('{0}', '{1}', '{2}', '{3}')".format(photo_data, user_id, picture_id, tag_id))
         conn.commit()
@@ -402,6 +413,18 @@ def albumcollect():
     else:
         return render_template('albumcollect.html', albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
 
+@app.route('/deletealbum', methods = ['GET', 'POST'])
+@flask_login.login_required
+def deletealbum():
+    if request.method == 'POST':
+        alname = request.form.get('album_name')
+        album_id = getAlbumIdFromAlname(alname)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM Albums_own WHERE album_id='{0}'".format(album_id))
+        conn.commit()
+        return render_template('deletealbum.html', message='You delete the album successfully', albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
+    else:
+        return render_template('deletealbum.html', albums=getUsersAlbum(getUserIdFromEmail(flask_login.current_user.id)))
 
 @app.route('/addfriend', methods=['GET', 'POST'])
 @flask_login.login_required
@@ -426,8 +449,12 @@ def addfriend():
 @app.route('/friend')
 def friend():
     user_id = getUserIdFromEmail(flask_login.current_user.id)
-    return render_template('friend.html', friends=getFriendFromUserID(user_id), message='Here are your friends!')
+    return render_template('friend.html', friends=getFriendFromUserID(user_id), message='Friends')
 
+def add_score(user_id):
+    cursor = conn.cursor()
+    cursor.execute("UPDATE Users SET score = score + 1 WHERE user_id = '{0}'".format(user_id))
+    conn.commit()
 def add_like(picture_id):
     cursor = conn.cursor()
     cursor.execute("UPDATE Pictures_Album SET num_likes = num_likes + 1 WHERE picture_id = '{0}'".format(picture_id))
@@ -436,38 +463,48 @@ def add_like(picture_id):
 def like(picture_id):
     add_like(picture_id)
     return render_template('allpicture.html', message = 'You liked a photo', photos=getAllphotos())
-def add_comment(picture_id):
+
+@app.route('/picture_delete/<picture_id>', methods=['POST', 'GET'])
+def picture_delete(picture_id):
     cursor = conn.cursor()
-    cursor.execute("UPDATE Comments_photo SET num_comments = num_comments + 1 WHERE picture_id = '{0}'".format(picture_id))
+    cursor.execute("DELETE FROM Pictures_Album WHERE picture_id = '{0}'".format(picture_id))
     conn.commit()
-@app.route('/picture_comment/<picture_id>', methods=['POST', 'GET'])
-@flask_login.login_required
-def picture_comment(picture_id):
-    add_comment(picture_id)
     user_id = getUserIdFromEmail(flask_login.current_user.id)
+    cursor.execute("SELECT picture_id, imgdata FROM Pictures_Album WHERE user_id = '{0}'".format(user_id))
+    photo = cursor.fetchall()
+    return render_template('deletepicture.html', message='You have deleted your photo', photos = photo)
+
+@app.route('/picture_comment/<picture_id>', methods=['POST', 'GET'])
+def picture_comment(picture_id):
+
+    user_id = getUserIdFromEmail(flask_login.current_user.id)
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM Picture_tags WHERE picture_id = '{0}'".format(picture_id))
+    owner_id = cursor.fetchone()[0]
     if request.method == 'POST':
         cotext = request.form.get('commenttt')
         dohave = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d %H:%M:%S')
-        cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM Picture_tags WHERE picture_id = '{0}'".format(picture_id))
-        owner_id = cursor.fetchone()[0]
+
         if owner_id != user_id:
-            cursor.execute("INSERT INTO Comments_photo (cotext, dohave, user_id, picture_id) VALUES ('{0}', '{1}', '{2}', '{3}')".format(cotext, dohave, user_id, picture_id))
+            cursor.execute("INSERT INTO Comments_photo (cotext, dohave, user_id, picture_id, owner_id) VALUES ('{0}', '{1}', '{2}', '{3}', '{4}')".format(cotext, dohave, user_id, picture_id, owner_id))
             return render_template('allpicture.html', message = 'Thank you for your comment!', photos = getAllphotos())
         else:
+
             return render_template('allpicture.html', message = 'You can not comment your own photo!', photos = getAllphotos())
     else:
+
+        add_score(owner_id)
         return render_template('picture_comment.html', pid = picture_id)
 
 @app.route('/comment_collect/<picture_id>', methods = ['POST', 'GET'])
 @flask_login.login_required
 def comment_collect(picture_id):
     cursor = conn.cursor()
-    cursor.execute("SELECT cotext FROM Comments_photo WHERE picture_id = '{0}'".format(picture_id))
-    comments = cursor.fetchall()
+    cursor.execute("SELECT cotext, user_id, dohave FROM Comments_photo WHERE picture_id = '{0}'".format(picture_id))
+    commmessage = cursor.fetchall()
     comments2 = []
-    for comment in comments:
-        comments2.append(comment[0])
+    for comment in commmessage:
+        comments2.append(comment)
     conn.commit()
 
     return render_template('comment_collect.html', message = 'Here are the comments of this photo', photo = getPicturedatafromPictureId(picture_id), comments = comments2)
@@ -476,13 +513,13 @@ def comment_collect(picture_id):
 def popuser():
     if request.method == 'POST':
         cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM Picture_tags GROUP BY user_id ORDER BY COUNT(*) DESC LIMIT 1")
+        cursor.execute("SELECT user_id FROM Users GROUP BY user_id ORDER BY score DESC LIMIT 1")
         user_id = cursor.fetchone()[0]
         conn.commit()
         return render_template('popuser.html', useremail = getemailfromUser(user_id))
     else:
         cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM Picture_tags GROUP BY user_id ORDER BY COUNT(*) DESC LIMIT 1")
+        cursor.execute("SELECT user_id FROM Users GROUP BY user_id ORDER BY score DESC LIMIT 1")
         user_id = cursor.fetchone()[0]
         conn.commit()
         return render_template('popuser.html', useremail = getemailfromUser(user_id))
@@ -507,6 +544,29 @@ def poptag():
         cursor.execute("SELECT tag FROM Tag WHERE tag_id = '{0}'".format(tag_id))
         tag = cursor.fetchone()[0]
         return render_template('poptag.html', tagalbums = tag, photos = getTagPictures(tag_id))
+def getallphotosfromuserId(user_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT album_id FROM Albums_own WHERE user_id = '{0}'".format(user_id))
+    album_ids = cursor.fetchall()
+    album_id = []
+    for albumid in album_ids:
+        album_id.append(albumid[0])
+    imgdatas=[]
+    for i in range(len(album_id)):
+        cursor.execute("SELECT picture_id FROM Pictures_Album WHERE album_id = '{0}'".format(album_id[i]))
+        picture_ids = cursor.fetchall()
+        for picture_id in picture_ids:
+            imgdatas.append(getPicturedatafromPictureId(picture_id[0]))
+    return imgdatas
+@app.route("/popphoto")
+def popphoto():
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM Users GROUP BY user_id ORDER BY score DESC LIMIT 1")
+    user_id = cursor.fetchone()[0]
+    useremail = getemailfromUser(user_id)
+    conn.commit()
+    photo = getallphotosfromuserId(user_id)
+    return render_template('popphotocollect.html', photos = photo, popuser = useremail)
 #default page
 @app.route("/", methods=['GET'])
 def hello():

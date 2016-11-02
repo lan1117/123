@@ -1,0 +1,16 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}</h4>
+{% endif %}
+{% if photos %}
+  <ul>
+    {% for photo in photos %}
+      <li><img src='data:image/png;base64, {{photo[1]}}'/></li>
+      <li><a href="/picture_delete/{{photo[0]}}">Delete this picture</a></li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>

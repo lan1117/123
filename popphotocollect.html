@@ -1,0 +1,18 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+{% if popuser %}
+<h4>Here are the photos of our popular user: {{popuser}}!</h4>
+{% endif %}
+{% if photos %}
+  <ul>
+    {% for photo in photos %}
+      <li><img src='data:image/png;base64, {{photo}}'/></li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<ul>
+  <li><a href='/'>Home</a></li>
+</ul>

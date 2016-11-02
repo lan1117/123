@@ -50,12 +50,13 @@ CREATE TABLE Albums_own (
 CREATE TABLE Pictures_Album
 (
   picture_id int4 AUTO_INCREMENT,
+  user_id int4,
   imgdata longblob ,
   caption varchar(255),
   album_id int NOT NULL,
   PRIMARY KEY (picture_id),
   FOREIGN KEY (album_id)
-      REFERENCES Albums_own(album_id)
+      REFERENCES Albums_own(album_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Tag(
@@ -69,10 +70,11 @@ CREATE TABLE Comments_photo(
   cotext varchar(255),
   dohave varchar(255),
   user_id int4,
+  owner_id int4,
   picture_id int NOT NULL,
   PRIMARY KEY (comment_id),
   FOREIGN KEY (picture_id)
-      REFERENCES Pictures_Album(picture_id)
+      REFERENCES Pictures_Album(picture_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Picture_tags(
@@ -82,22 +84,13 @@ CREATE TABLE Picture_tags(
   imgdata longblob ,
   PRIMARY KEY (picture_id, tag_id),
   FOREIGN KEY (picture_id)
-      REFERENCES Pictures_Album(picture_id),
+      REFERENCES Pictures_Album(picture_id) ON UPDATE CASCADE ON DELETE CASCADE,
   FOREIGN KEY (tag_id)
       REFERENCES Tag(tag_id),
   FOREIGN KEY (user_id)
       REFERENCES Users(user_id)
 );
 
-CREATE TABLE users_leave_comment(
-  comment_id int4 AUTO_INCREMENT,
-  user_id int4,
-  PRIMARY KEY (comment_id, user_id),
-  FOREIGN KEY (comment_id)
-      REFERENCES Comments_photo(comment_id),
-  FOREIGN KEY (user_id)
-      REFERENCES Users(user_id)
-);
 
 CREATE TABLE friends(
   friend_one int4 ,
@@ -116,4 +109,4 @@ INSERT INTO Tag (tag) VALUES ('universe');
 INSERT INTO Tag (tag) VALUES ('plant');
 INSERT INTO Tag (tag) VALUES ('cartoon');
 alter table Pictures_Album add column num_likes integer not null default 0;
-alter table Comments_photo add column num_comments integer not null default 0;
+alter table Users add column score integer not null default 0;

@@ -11,9 +11,12 @@
       <li><img src='data:image/png;base64, {{photo[0]}}'/></li>
     {% endfor %}
   </ul>
+{% else %}
+<h4>You do not have pictures in this album</h4>
 {% endif %}
 {% endif %}
 
 <ul>
+  <li><a href='/albumcollect'>Select other albums</a></li>
   <li><a href='/'>Home</a></li>
 </ul>

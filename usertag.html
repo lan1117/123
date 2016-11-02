@@ -11,9 +11,12 @@
       <li><img src='data:image/png;base64, {{photo[0]}}'/></li>
     {% endfor %}
   </ul>
+{% else %}
+<h4>You do not have any photo being tagged as {{tagalbums}}</h4>
 {% endif %}
 {% endif %}
 
 <ul>
+  <li><a href='/usertagcollect'>Select other tag</a></li>
   <li><a href='/'>Home</a></li>
 </ul>
