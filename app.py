@@ -1,12 +1,4 @@
-######################################
-# author ben lawson <balawson@bu.edu>
-######################################
-# Some code adapted from
-# CodeHandBook at http://codehandbook.org/python-web-application-development-using-flask-and-mysql/
-# and MaxCountryMan at https://github.com/maxcountryman/flask-login/
-# and Flask Offical Tutorial at  http://flask.pocoo.org/docs/0.10/patterns/fileuploads/
-# see links for further understanding
-###################################################
+
 
 import flask
 from flask import Flask, Response, request, render_template, redirect, url_for
@@ -16,13 +8,7 @@ import datetime
 import re
 import urllib, cStringIO
 
-#import Image
 
-
-#from selenium.webdriver.support.select import Select
-
-
-#for image uploading
 from werkzeug import secure_filename
 import os, base64
 
@@ -492,9 +478,24 @@ def add_like(picture_id):
     conn.commit()
 @app.route('/like/<picture_id>', methods=['POST', 'GET'])
 def like(picture_id):
+    #user_id = getUserIdFromEmail(flask_login.current_user.id)
+    user_email = flask_login.current_user.id
     add_like(picture_id)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Picture_Like (picture_id, liker_email) VALUES ('{0}', '{1}')".format(picture_id, user_email))
+    conn.commit()
     return render_template('allpicture.html', message = 'You liked a photo', photos=getAllphotos())
 
+@app.route('/like_email/<picture_id>', methods = ['POST', 'GET'])
+def like_email(picture_id):
+    cursor = conn.cursor()
+    cursor.execute("SELECT liker_email FROM Picture_Like WHERE picture_id = '{0}'".format(picture_id))
+    likes_email = cursor.fetchall()
+    like_email = []
+    for likeemail in likes_email:
+        like_email.append(likeemail[0])
+    conn.commit()
+    return render_template('like_collect.html', message = 'Here are the users who like this photo', photo = getPicturedatafromPictureId(picture_id), likes_email = like_email)
 @app.route('/picture_delete/<picture_id>', methods=['POST', 'GET'])
 def picture_delete(picture_id):
     cursor = conn.cursor()
@@ -528,7 +529,7 @@ def picture_comment(picture_id):
         return render_template('picture_comment.html', pid = picture_id)
 
 @app.route('/comment_collect/<picture_id>', methods = ['POST', 'GET'])
-@flask_login.login_required
+
 def comment_collect(picture_id):
     cursor = conn.cursor()
     cursor.execute("SELECT cotext, user_id, dohave FROM Comments_photo WHERE picture_id = '{0}'".format(picture_id))

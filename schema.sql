@@ -59,6 +59,14 @@ CREATE TABLE Pictures_Album
       REFERENCES Albums_own(album_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE Picture_Like(
+  picture_id int4,
+  liker_email varchar(255),
+  PRIMARY KEY (picture_id, liker_email),
+  FOREIGN KEY (picture_id) REFERENCES Pictures_Album(picture_id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (liker_email) REFERENCES Users(email)
+);
+
 CREATE TABLE Tag(
   tag_id int4 AUTO_INCREMENT,
   tag varchar(255),

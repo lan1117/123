@@ -1,0 +1,25 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+
+{% if photo %}
+  <img src='data:image/png;base64, {{photo}}' />
+{% endif %}
+
+{% if likes_email %}
+  <ul>
+    {% for email in likes_email %}
+      <li>{{email}}<br></li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <h4>No one liked this photo yet</h4>
+{% endif %}
+
+
+<br><br><br>
+<ul>
+  <a href='/allpicture'>Back to see other photos</a><br>
+  <a href='/'>Home</a>
+</ul>
